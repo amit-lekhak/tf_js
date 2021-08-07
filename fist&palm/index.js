@@ -2,33 +2,36 @@
 // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
 
 // the link to your model provided by Teachable Machine export panel
+const uploadModel = document.getElementById("upload-model");
+const uploadWeights = document.getElementById("upload-weights");
+const uploadMetadata = document.getElementById("upload-metadata");
 
-const button = document.getElementsByTagName("button")[0];
+const startButton = document.getElementById("start-button");
+const stopButton = document.getElementById("stop-button");
 const webcamElement = document.getElementById("webcam");
 const canvasElement = document.getElementById("canvas");
 const webcam = new Webcam(webcamElement, "user", canvasElement);
 
-button.addEventListener("click", init);
-
+startButton.addEventListener("click", init);
+stopButton.addEventListener("click", stop);
 
 let model, labelContainer, maxPredictions;
 
-// Load the image model and setup the webcam
-async function init() {
-
-  // you need to create File objects, like with file input elements (<input type="file" ...>)
-  const uploadModel = document.getElementById("upload-model");
-  const uploadWeights = document.getElementById("upload-weights");
-  const uploadMetadata = document.getElementById("upload-metadata");
-
+async function loadModel() {
+  if (model) return;
   model = await tmImage.loadFromFiles(
     uploadModel.files[0],
     uploadWeights.files[0],
     uploadMetadata.files[0]
   );
-
-
   maxPredictions = model.getTotalClasses();
+}
+
+// Load the image model and setup the webcam
+async function init() {
+  // you need to create File objects, like with file input elements (<input type="file" ...>)
+
+  await loadModel();
 
   webcam
     .start()
@@ -48,11 +51,13 @@ async function init() {
   }
 }
 
-
 async function loop() {
-
   await predict();
   window.requestAnimationFrame(loop);
+}
+
+function stop() {
+  webcam.stop();
 }
 
 // run the webcam image through the image model
