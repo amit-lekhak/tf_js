@@ -2,9 +2,9 @@
 // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
 
 // the link to your model provided by Teachable Machine export panel
-const uploadModel = document.getElementById("upload-model");
-const uploadWeights = document.getElementById("upload-weights");
-const uploadMetadata = document.getElementById("upload-metadata");
+
+const modelUrl = "./models/model.json";
+const metadataUrl = "./models/metadata.json";
 
 const startButton = document.getElementById("start-button");
 const stopButton = document.getElementById("stop-button");
@@ -15,15 +15,12 @@ const webcam = new Webcam(webcamElement, "user", canvasElement);
 startButton.addEventListener("click", init);
 stopButton.addEventListener("click", stop);
 
-let model, labelContainer, maxPredictions;
+let model, labelContainer, maxPredictions,id;
 
 async function loadModel() {
   if (model) return;
-  model = await tmImage.loadFromFiles(
-    uploadModel.files[0],
-    uploadWeights.files[0],
-    uploadMetadata.files[0]
-  );
+
+  model = await tmImage.load(modelUrl, metadataUrl);
   maxPredictions = model.getTotalClasses();
 }
 
@@ -37,7 +34,7 @@ async function init() {
     .start()
     .then((result) => {
       console.log("webcam started");
-      window.requestAnimationFrame(loop);
+     id = window.requestAnimationFrame(loop);
     })
     .catch((err) => {
       console.log(err);
@@ -53,11 +50,16 @@ async function init() {
 
 async function loop() {
   await predict();
-  window.requestAnimationFrame(loop);
+ id = window.requestAnimationFrame(loop);
 }
 
 function stop() {
+  cancelAnimationFrame(id)
   webcam.stop();
+  webcamElement.srcObject = null;
+  labelContainer.childNodes[0].innerHTML = null
+  labelContainer.childNodes[1].innerHTML = null
+
 }
 
 // run the webcam image through the image model
